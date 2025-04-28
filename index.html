@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --success-color: #4cc9f0;
+            --danger-color: #f72585;
+            --warning-color: #f8961e;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --grey-color: #adb5bd;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fb;
+            color: var(--dark-color);
+        }
+
+        .dashboard {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background-color: var(--dark-color);
+            color: white;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .sidebar.collapsed {
+            width: 70px;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-header h3 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .sidebar-menu {
+            padding: 15px 0;
+        }
+
+        .menu-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .menu-item i {
+            font-size: 18px;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .menu-text {
+            transition: opacity 0.3s;
+        }
+
+        .sidebar.collapsed .menu-text {
+            display: none;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Bar */
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 30px;
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background-color: #f0f2f5;
+            border-radius: 50px;
+            padding: 8px 15px;
+            width: 300px;
+        }
+
+        .search-bar input {
+            background: none;
+            border: none;
+            outline: none;
+            margin-left: 10px;
+            width: 100%;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .notification {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .notification-count {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: var(--danger-color);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        /* Dashboard Content */
+        .dashboard-content {
+            padding: 30px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .page-title {
+            margin-bottom: 30px;
+        }
+
+        .dashboard-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-card {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-card .card-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .stat-card .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .stat-card .card-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .card-label {
+            color: var(--grey-color);
+            font-size: 14px;
+        }
+
+        .icon-users { background-color: rgba(67, 97, 238, 0.1); color: var(--primary-color); }
+        .icon-revenue { background-color: rgba(76, 201, 240, 0.1); color: var(--success-color); }
+        .icon-sales { background-color: rgba(247, 37, 133, 0.1); color: var(--danger-color); }
+        .icon-conversion { background-color: rgba(248, 150, 30, 0.1); color: var(--warning-color); }
+
+        .chart-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .chart-card {
+            min-height: 350px;
+        }
+
+        .chart-card .card-header {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chart-card .card-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .chart-card .card-actions select {
+            padding: 6px 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            background-color: white;
+        }
+
+        .chart-area {
+            height: 280px;
+            position: relative;
+        }
+
+        .recent-activity {
+            margin-bottom: 30px;
+        }
+
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .activity-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .activity-details h4 {
+            margin-bottom: 5px;
+        }
+
+        .activity-time {
+            font-size: 12px;
+            color: var(--grey-color);
+        }
+
+        /* Tables */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background-color: #f8f9fa;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            font-weight: 600;
+        }
+
+        .table-action {
+            color: var(--primary-color);
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-completed {
+            background-color: rgba(76, 201, 240, 0.1);
+            color: var(--success-color);
+        }
+
+        .status-pending {
+            background-color: rgba(248, 150, 30, 0.1);
+            color: var(--warning-color);
+        }
+
+        .status-cancelled {
+            background-color: rgba(247, 37, 133, 0.1);
+            color: var(--danger-color);
+        }
+
+        /* Responsive Design */
+        @media screen and (max-width: 1200px) {
+            .dashboard-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .chart-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -250px;
+                height: 100%;
+            }
+            
+            .sidebar.active {
+                left: 0;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .mobile-menu {
+                display: block;
+            }
+            
+            .search-bar {
+                display: none;
+            }
+            
+            .dashboard-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .activity-list {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .topbar {
+                padding: 15px;
+            }
+            
+            .dashboard-content {
+                padding: 15px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h3><i class="fas fa-tachometer-alt"></i> <span class="menu-text">Dashboard</span></h3>
+                <button class="toggle-btn" id="toggle-sidebar">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            <div class="sidebar-menu">
+                <a href="#" class="menu-item active">
+                    <i class="fas fa-home"></i>
+                    <span class="menu-text">Dashboard</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="fas fa-users"></i>
+                    <span class="menu-text">Users</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="menu-text">Products</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="fas fa-chart-bar"></i>
+                    <span class="menu-text">Analytics</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="fas fa-cog"></i>
+                    <span class="menu-text">Settings</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="fas fa-file-alt"></i>
+                    <span class="menu-text">Reports</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="fas fa-bell"></i>
+                    <span class="menu-text">Notifications</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="menu-text">Logout</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top Bar -->
+            <div class="topbar">
+                <div class="mobile-menu">
+                    <button class="toggle-btn" id="mobile-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search...">
+                </div>
+                <div class="user-info">
+                    <div class="notification">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-count">3</span>
+                    </div>
+                    <div class="user-profile">
+                        <div class="avatar">JD</div>
+                        <div class="user-details">
+                            <span>John Doe</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <div class="page-title">
+                    <h2>Dashboard Overview</h2>
+                </div>
+
+                <!-- Stat Cards -->
+                <div class="dashboard-cards">
+                    <div class="card stat-card">
+                        <div class="card-header">
+                            <div class="card-icon icon-users">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                        <div class="card-value">1,582</div>
+                        <div class="card-label">Total Users</div>
+                    </div>
+                    <div class="card stat-card">
+                        <div class="card-header">
+                            <div class="card-icon icon-revenue">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                        </div>
+                        <div class="card-value">$32,485</div>
+                        <div class="card-label">Total Revenue</div>
+                    </div>
+                    <div class="card stat-card">
+                        <div class="card-header">
+                            <div class="card-icon icon-sales">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                        </div>
+                        <div class="card-value">528</div>
+                        <div class="card-label">Total Sales</div>
+                    </div>
+                    <div class="card stat-card">
+                        <div class="card-header">
+                            <div class="card-icon icon-conversion">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                        </div>
+                        <div class="card-value">15.8%</div>
+                        <div class="card-label">Conversion Rate</div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="chart-container">
+                    <div class="card chart-card">
+                        <div class="card-header">
+                            <div class="card-title">Sales Overview</div>
+                            <div class="card-actions">
+                                <select id="sales-period">
+                                    <option value="weekly">Weekly</option>
+                                    <option value="monthly" selected>Monthly</option>
+                                    <option value="yearly">Yearly</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="chart-area">
+                            <canvas id="salesChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card chart-card">
+                        <div class="card-header">
+                            <div class="card-title">Traffic Sources</div>
+                            <div class="card-actions">
+                                <select id="traffic-period">
+                                    <option value="weekly">Weekly</option>
+                                    <option value="monthly" selected>Monthly</option>
+                                    <option value="yearly">Yearly</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="chart-area">
+                            <canvas id="trafficChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Orders -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Recent Orders</div>
+                        <div class="card-actions">
+                            <button class="btn-view-all">View All</button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Product</th>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>#ORD-0001</td>
+                                    <td>John Smith</td>
+                                    <td>Premium Plan</td>
+                                    <td>Apr 24, 2025</td>
+                                    <td>$125.00</td>
+                                    <td><span class="status status-completed">Completed</span></td>
+                                    <td>
+                                        <span class="table-action"><i class="fas fa-eye"></i></span>
+                                        <span class="table-action"><i class="fas fa-edit"></i></span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>#ORD-0002</td>
+                                    <td>Alice Johnson</td>
+                                    <td>Standard Plan</td>
+                                    <td>Apr 23, 2025</td>
+                                    <td>$79.99</td>
+                                    <td><span class="status status-pending">Pending</span></td>
+                                    <td>
+                                        <span class="table-action"><i class="fas fa-eye"></i></span>
+                                        <span class="table-action"><i class="fas fa-edit"></i></span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>#ORD-0003</td>
+                                    <td>Robert Davis</td>
+                                    <td>Basic Plan</td>
+                                    <td>Apr 22, 2025</td>
+                                    <td>$49.99</td>
+                                    <td><span class="status status-completed">Completed</span></td>
+                                    <td>
+                                        <span class="table-action"><i class="fas fa-eye"></i></span>
+                                        <span class="table-action"><i class="fas fa-edit"></i></span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>#ORD-0004</td>
+                                    <td>Emily Wilson</td>
+                                    <td>Premium Plan</td>
+                                    <td>Apr 21, 2025</td>
+                                    <td>$125.00</td>
+                                    <td><span class="status status-cancelled">Cancelled</span></td>
+                                    <td>
+                                        <span class="table-action"><i class="fas fa-eye"></i></span>
+                                        <span class="table-action"><i class="fas fa-edit"></i></span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>#ORD-0005</td>
+                                    <td>Michael Brown</td>
+                                    <td>Standard Plan</td>
+                                    <td>Apr 20, 2025</td>
+                                    <td>$79.99</td>
+                                    <td><span class="status status-completed">Completed</span></td>
+                                    <td>
+                                        <span class="table-action"><i class="fas fa-eye"></i></span>
+                                        <span class="table-action"><i class="fas fa-edit"></i></span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle Sidebar
+        document.getElementById('toggle-sidebar').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('collapsed');
+        });
+
+        // Mobile Menu Toggle
+        document.getElementById('mobile-toggle').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('active');
+        });
+
+        // Charts
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sales Chart
+            const salesCtx = document.getElementById('salesChart').getContext('2d');
+            const salesChart = new Chart(salesCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [
+                        {
+                            label: 'Sales',
+                            data: [30, 40, 35, 50, 49, 60, 70, 91, 125, 135, 150, 180],
+                            backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                            borderColor: '#4361ee',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            fill: true
+                        },
+                        {
+                            label: 'Revenue',
+                            data: [80, 90, 85, 100, 105, 110, 115, 120, 145, 160, 170, 200],
+                            backgroundColor: 'rgba(76, 201, 240, 0.1)',
+                            borderColor: '#4cc9f0',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Traffic Chart
+            const trafficCtx = document.getElementById('trafficChart').getContext('2d');
+            const trafficChart = new Chart(trafficCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Organic Search', 'Direct', 'Social Media', 'Referrals', 'Email'],
+                    datasets: [{
+                        data: [35, 20, 15, 20, 10],
+                        backgroundColor: [
+                            '#4361ee',
+                            '#4cc9f0',
+                            '#f72585',
+                            '#f8961e',
+                            '#3f37c9'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Update charts on period change
+            document.getElementById('sales-period').addEventListener('change', function(e) {
+                // This would typically make an API call to get new data
+                // For demo purposes, we'll just update with random data
+                const newData = Array.from({length: 12}, () => Math.floor(Math.random() * 200) + 20);
+                const newRevenueData = Array.from({length: 12}, () => Math.floor(Math.random() * 200) + 80);
+                
+                salesChart.data.datasets[0].data = newData;
+                salesChart.data.datasets[1].data = newRevenueData;
+                salesChart.update();
+            });
+
+            document.getElementById('traffic-period').addEventListener('change', function(e) {
+                // Similar to above, this would typically fetch new data
+                const newData = [
+                    Math.floor(Math.random() * 40) + 10,
+                    Math.floor(Math.random() * 30) + 10,
+                    Math.floor(Math.random() * 20) + 10,
+                    Math.floor(Math.random() * 20) + 10,
+                    Math.floor(Math.random() * 15) + 5
+                ];
+                
+                trafficChart.data.datasets[0].data = newData;
+                trafficChart.update();
+            });
+        });
+
+        // Notification Dropdown (simplified for demo)
+        document.querySelector('.notification').addEventListener('click', function() {
+            alert('Notifications: 3 new alerts');
+        });
+
+        // User Profile Dropdown (simplified for demo)
+        document.querySelector('.user-profile').addEventListener('click', function() {
+            alert('User Profile Options');
+        });
+    </script>
+</body>
+</html>
